@@ -25,17 +25,16 @@ export interface CreateResponseSerialzer {
  * Represents the response report after reporting answers.
  */
 export interface ResponseReport {
-  question_id: string; // UUID format
-  total_responses: number;
-  // Add any additional fields as per your API schema
+  worst: string;
+  bad: string;
+  middle: string;
+  good: string;
+  perfect: string;
 }
 
 /**
  * Represents an empty body (used for endpoints that don't require a request body).
  */
-export interface EmptyBody {
-  // No fields, as the body is empty
-}
 
 /**
  * Represents a paginated response for products (from your catalog.ts example).

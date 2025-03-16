@@ -87,12 +87,10 @@ export const deleteQuestion = async (id: string): Promise<void> => {
  * Report answers for a question
  */
 export const reportAnswers = async (
-  id: string,
-  data: EmptyBody
+  id: string
 ): Promise<ResponseReport> => {
   const response = await apiClient.post<ResponseReport>(
-    `/polls/questions/${id}/report_answers/`,
-    data
+    `/polls/questions/${id}/report_answers/`
   );
   return response.data;
 };
