@@ -2,8 +2,8 @@ import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
 import { getAuthToken, refreshToken, clearAuthTokens } from '@/lib/auth';
 
 // API configuration
-const API_URL = 'http://192.168.100.23:8003/api/v1';
-export const BASE_URL = 'http://192.168.100.23:8003/';
+const API_URL = 'https://rasht-museum.mofid-soft.ir/api/v1/';
+export const BASE_URL = 'https://rasht-museum.mofid-soft.ir/';
 
 // Create axios instance with default config
 const axiosInstance: AxiosInstance = axios.create({

@@ -77,13 +77,13 @@ const PlaylistsPage: React.FC = () => {
 
   const getDayName = (day: number): string => {
     const days = [
+      translations.playlists.days.saturday,
       translations.playlists.days.sunday,
       translations.playlists.days.monday,
       translations.playlists.days.tuesday,
       translations.playlists.days.wednesday,
       translations.playlists.days.thursday,
       translations.playlists.days.friday,
-      translations.playlists.days.saturday
     ];
     return days[day];
   };
