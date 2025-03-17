@@ -69,10 +69,10 @@ const MediaPicker: React.FC<MediaPickerProps> = ({ value = [], onChange, onClose
       }
 
       // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setUploadError('حداکثر حجم فایل ۵ مگابایت است');
-        continue;
-      }
+      // if (file.size > 5 * 1024 * 1024) {
+      //   setUploadError('حداکثر حجم فایل ۵ مگابایت است');
+      //   continue;
+      // }
 
       setIsUploading(true);
       try {

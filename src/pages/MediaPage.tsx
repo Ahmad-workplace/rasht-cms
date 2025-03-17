@@ -56,10 +56,10 @@ const MediaPage: React.FC = () => {
     }
 
     // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setUploadError(translations.mediaLibrary.fileTooLarge);
-      return;
-    }
+    // if (file.size > 5 * 1024 * 1024) {
+    //   setUploadError(translations.mediaLibrary.fileTooLarge);
+    //   return;
+    // }
 
     setIsUploading(true);
     try {
