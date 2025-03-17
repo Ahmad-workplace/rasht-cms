@@ -1,20 +1,23 @@
 # Stage 1: Build the application
 FROM node:20-alpine AS builder
 
+# Install pnpm
+RUN npm install -g pnpm
+
 # Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies using pnpm
+RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY . .
 
-# Build the application
-RUN npm run build
+# Build the application using pnpm
+RUN pnpm run build
 
 # Stage 2: Serve the application
 FROM nginx:alpine
