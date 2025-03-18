@@ -234,7 +234,7 @@ const AboutUsPage: React.FC = () => {
                 <h3 className="text-lg leading-6 font-medium text-gray-900">
                   {getCurrentTranslation()?.title}
                 </h3>
-                <p className="mt-1 max-w-2xl text-sm text-gray-500">
+                <p className="mt-1 max-w-2xl text-sm text-gray-500 whitespace-pre-line">
                   {getCurrentTranslation()?.description}
                 </p>
               </div>

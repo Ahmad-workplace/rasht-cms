@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { useApiQuery, useApiMutation } from '@/hooks';
-import { getProducts, getCategories, createProduct, deleteProduct } from '@/lib/api';
-import { Package, Search, Plus, Filter, Trash2 } from 'lucide-react';
+import { getProducts, getCategories, createProduct, deleteProduct, updateProduct } from '@/lib/api';
+import { Package, Search, Plus, Filter, Trash2, Edit } from 'lucide-react';
 import CreateProductModal from '@/components/modals/CreateProductModal';
 import ViewProductModal from '@/components/modals/ViewProductModal';
+import EditProductModal from '@/components/modals/EditProductModal';
 import { Category, Product } from '@/types/api';
 import { translations } from '@/lib/constants/translations';
 import { convertToFarsiNumber } from '@/lib/utils/numbers';
@@ -15,7 +16,9 @@ const ProductsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
   const toast = useToast();
   
   const { data: productsData, isLoading: productsLoading, error: productsError, refetch } = useApiQuery(
@@ -45,12 +48,36 @@ const ProductsPage: React.FC = () => {
       toast.success('محصول با موفقیت حذف شد');
     },
   });
-  
+
+  const editProductMutation = useApiMutation(
+    ({ id, data }: { id: number; data: Partial<Product> }) => updateProduct(id, data),
+    {
+      onSuccess: () => {
+        refetch();
+        setIsEditModalOpen(false);
+        toast.success('محصول با موفقیت ویرایش شد');
+      },
+    }
+  );
+
   const handleCreateProduct = async (productData: any) => {
     try {
       await createProductMutation.mutateAsync(productData);
     } catch (error) {
       console.error('Failed to create product:', error);
+    }
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setProductToEdit(product);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSubmitEditProduct = async (id: number, data: Partial<Product>) => {
+    try {
+      await editProductMutation.mutateAsync({ id, data });
+    } catch (error) {
+      console.error('Failed to edit product:', error);
     }
   };
 
@@ -178,6 +205,12 @@ const ProductsPage: React.FC = () => {
                                 {translations.common.view}
                               </button>
                               <button
+                                onClick={() => handleEditProduct(product)}
+                                className="text-indigo-600 hover:text-indigo-900"
+                              >
+                                {translations.common.edit}
+                              </button>
+                              <button
                                 onClick={() => handleDeleteProduct(product.id)}
                                 className="text-red-600 hover:text-red-900"
                               >
@@ -240,6 +273,16 @@ const ProductsPage: React.FC = () => {
             isOpen={!!selectedProduct}
             onClose={() => setSelectedProduct(null)}
             product={selectedProduct}
+          />
+        )}
+
+        {productToEdit && (
+          <EditProductModal
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            onSubmit={handleSubmitEditProduct}
+            product={productToEdit}
+            categories={categories || []}
           />
         )}
       </div>

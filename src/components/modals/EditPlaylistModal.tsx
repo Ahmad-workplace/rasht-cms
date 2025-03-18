@@ -222,9 +222,9 @@ const EditPlaylistModal: React.FC<EditPlaylistModalProps> = ({
                     ]
                   }))} 
                   onTaskUpdate={handleTaskUpdate}
-                  timeRange={{ start: "08:00", end: "18:00" }}
+                  timeRange={{ start: "00:00", end: "24:00" }}
                   columnWidth={100}
-                  timeSlotInterval={30}
+                  timeSlotInterval={60}
                 />
               </div>
 
