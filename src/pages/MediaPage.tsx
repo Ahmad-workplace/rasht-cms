@@ -224,7 +224,7 @@ const MediaPage: React.FC = () => {
 
                   {/* File info */}
                   <div className="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-50 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="truncate">{attachment.title || attachment.file.split('/').pop()}</div>
+                    <div className="truncate">{attachment.title || attachment.file?.split('/').pop() || ''}</div>
                     <div className="flex items-center justify-between mt-1">
                       <span className="uppercase">{attachment.type}</span>
                       {attachment.duration && (

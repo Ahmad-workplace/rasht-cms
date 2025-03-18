@@ -20,6 +20,7 @@ import MediaPage from "@/pages/MediaPage";
 import NotFoundPage from "@/pages/NotFoundPage";
 import PollsPage from "./pages/PollsPage";
 import AboutUsPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
 
 // Create a client for React Query with global error handling
 const queryClient = new QueryClient({
@@ -112,6 +113,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <AboutUsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/contact"
+              element={
+                <ProtectedRoute>
+                  <ContactPage />
                 </ProtectedRoute>
               }
             />
