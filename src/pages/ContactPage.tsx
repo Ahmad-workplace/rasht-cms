@@ -10,7 +10,7 @@ const ContactPage: React.FC = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [number, setNumber] = useState('');
-  const [socialMedia, setSocialMedia] = useState<Record<string, string>>({});
+  const [social_media, setSocialMedia] = useState<Record<string, string>>({}); // Align with the interface
   const [website, setWebsite] = useState('');
 
   // Fetch contact information
@@ -36,7 +36,7 @@ const ContactPage: React.FC = () => {
   useEffect(() => {
     if (contactData) {
       setNumber(contactData.number);
-      setSocialMedia(contactData.socialMedia || {});
+      setSocialMedia(contactData.social_media || {}); // Align with the interface
       setWebsite(contactData.website);
     }
   }, [contactData]);
@@ -44,7 +44,7 @@ const ContactPage: React.FC = () => {
   const handleSave = () => {
     const updatedData: ContactUs = {
       number,
-      socialMedia,
+      social_media, // Align with the interface
       website,
     };
     updateContact(updatedData);
@@ -109,7 +109,7 @@ const ContactPage: React.FC = () => {
           <label className="block mb-2">Social Media:</label>
           {isEditing ? (
             <div>
-              {Object.entries(socialMedia).map(([platform, url]) => (
+              {Object.entries(social_media).map(([platform, url]) => (
                 <div key={platform} className="flex items-center mb-2">
                   <input
                     type="text"
@@ -140,7 +140,7 @@ const ContactPage: React.FC = () => {
             </div>
           ) : (
             <div>
-              {Object.entries(socialMedia).map(([platform, url]) => (
+              {Object.entries(social_media).map(([platform, url]) => (
                 <div key={platform} className="flex items-center mb-2">
                   <span className="w-32 font-medium">{platform}:</span>
                   <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">

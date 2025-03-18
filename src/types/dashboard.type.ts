@@ -52,7 +52,7 @@ export interface AboutUsPut {
  */
 export interface ContactUs {
   number: string;
-  social_media: string | null;
+  social_media: Record<string, string> | null; // Allow null
   website: string;
 }
 
