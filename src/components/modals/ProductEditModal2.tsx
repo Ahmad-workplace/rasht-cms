@@ -121,7 +121,7 @@ const ProductEditModal2: React.FC<ProductEditModal2Props> = ({
 
     // Validate required fields
     const faTranslation = formData.translations?.find(t => t.language_code === 'fa');
-    if (!faTranslation?.name || !faTranslation?.description) {
+    if (!faTranslation?.name ) {
       toast.error('لطفاً تمام فیلدهای اجباری فارسی را پر کنید');
       return;
     }
@@ -192,7 +192,7 @@ const ProductEditModal2: React.FC<ProductEditModal2Props> = ({
             {/* Attachments Section */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {translations.mediaLibrary.title} *
+                {translations.mediaLibrary.title} 
               </label>
               <div className="mt-1 flex items-center space-x-4 space-x-reverse">
                 <div className="flex flex-wrap gap-4">
@@ -261,7 +261,7 @@ const ProductEditModal2: React.FC<ProductEditModal2Props> = ({
 
               <div>
                 <label htmlFor={`description-${currentLanguage}`} className="block text-sm font-medium text-gray-700">
-                  {translations.products.description} {currentLanguage === 'fa' && '*'}
+                  {translations.products.description} {currentLanguage === 'fa'}
                 </label>
                 <textarea
                   id={`description-${currentLanguage}`}

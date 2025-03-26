@@ -138,8 +138,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
       (t) => t.language_code === "fa"
     );
     if (
-      !faTranslation?.name ||
-      !faTranslation?.description 
+      !faTranslation?.name 
     ) {
       alert("لطفاً تمام فیلدهای اجباری فارسی را پر کنید");
       return;
@@ -150,10 +149,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
       return;
     }
 
-    if (!formData.attachment.length) {
-      alert("لطفاً حداقل یک تصویر انتخاب کنید");
-      return;
-    }
 
     onSubmit(formData);
     setFormData({
@@ -331,7 +326,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
 
               <div>
                 <label htmlFor={`description-${currentLanguage}`} className="block text-sm font-medium text-gray-700">
-                  {translations.companies.description} {currentLanguage === "fa" && "*"}
+                  {translations.companies.description} {currentLanguage === "fa" }
                 </label>
                 <textarea
                   id={`description-${currentLanguage}`}
