@@ -1,13 +1,21 @@
-
 export interface CategoryTranslation {
+  id: string;
   name: string;
   language_code: string;
+}
+
+export interface CategoryLogo {
+  file: string | null;
+  title: string;
+  duration: number | null;
+  file_url: string;
 }
 
 export interface Category {
   id: string;
   translations: CategoryTranslation[];
-  logo: string | null;
+  logo: CategoryLogo | null;
+  parent: string | null;
 }
 
 export interface Notification {
@@ -21,12 +29,13 @@ export interface Notification {
 
 export interface Attachment {
   id: string;
-  type: "png" | "jpeg" | "mp4";
-  file: string;
+  type: "png" | "jpeg" | "mp4" | "jpg" | "webp";
+  file: string | null;
+  file_url: string | null;
   created_at: string;
-  thumbnail: string;
-  title?: string | null;
-  duration?: number | null;
+  thumbnail: string | null;
+  title: string | null;
+  duration: number | null;
 }
 
 export interface Specification {
@@ -34,10 +43,12 @@ export interface Specification {
 }
 
 export interface Translation {
+  id?: string;
   name?: string;
   description?: string;
   language_code: string;
   specification?: Specification;
+  title?: string;
 }
 
 export interface Product {
@@ -100,18 +111,26 @@ export interface CompanyRequest {
 }
 
 export interface WeekSchedule {
-  id: number;
+  id: string;
   playlist: string;
-  attachment: string;
+  attachment: Attachment;
   day: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   start_time: string;
   end_time: string;
+  translations: Translation[];
 }
 
-export interface Playlist {
+export interface PlaylistSummary {
   id: string;
   title: string;
   is_active: boolean;
+}
+
+export interface Playlist extends PlaylistSummary {
+  schedules: WeekSchedule[];
+}
+
+export interface PlaylistDetail extends Playlist {
   schedules: WeekSchedule[];
 }
 

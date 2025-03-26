@@ -1,15 +1,18 @@
 /**
+ * Represents a translation for a question
+ */
+export interface Translation {
+  id?: string;
+  text: string;
+  language_code: string;
+}
+
+/**
  * Represents a question in the main app.
  */
 export interface QuestionSerialzer {
   id: string; // UUID format
   translations: Translation[];
-}
-
-export interface Translation {
-  id: string;
-  text: string;
-  language_code: string;
 }
 
 /**
@@ -18,7 +21,6 @@ export interface Translation {
 export interface CreateResponseSerialzer {
   question_id: string; // UUID format
   response_text: string;
-  // Add any additional fields as per your API schema
 }
 
 /**
@@ -33,45 +35,11 @@ export interface ResponseReport {
 }
 
 /**
- * Represents an empty body (used for endpoints that don't require a request body).
- */
-
-/**
- * Represents a paginated response for products (from your catalog.ts example).
+ * Represents a paginated response
  */
 export interface PaginatedResponse<T> {
   count: number;
   next: string | null;
   previous: string | null;
   results: T[];
-}
-
-/**
- * Represents a category (from your catalog.ts example).
- */
-export interface Category {
-  id: string;
-  name: string;
-  description?: string;
-}
-
-/**
- * Represents a product (from your catalog.ts example).
- */
-export interface Product {
-  id: number;
-  name: string;
-  description?: string;
-  price: number;
-  category: Category;
-}
-
-/**
- * Represents the data required to create a product (from your catalog.ts example).
- */
-export interface CreateProduct {
-  name: string;
-  description?: string;
-  price: number;
-  category_id: string;
 }

@@ -1,10 +1,10 @@
 import apiClient from "@/lib/api/client";
 import {
-  CreateResponseSerialzer,
-  EmptyBody,
   QuestionSerialzer,
+  CreateResponseSerialzer,
   ResponseReport,
 } from "@/types/poll.type";
+
 /**
  * Get question list
  */
@@ -41,11 +41,16 @@ export const getQuestions = async (): Promise<QuestionSerialzer[]> => {
  * Create new question
  */
 export const createQuestion = async (
-  questionData: QuestionSerialzer
+  questionData: Omit<QuestionSerialzer, 'id'>
 ): Promise<QuestionSerialzer> => {
   const response = await apiClient.post<QuestionSerialzer>(
     "/polls/questions/",
-    questionData
+    {
+      translations: questionData.translations.map(t => ({
+        text: t.text,
+        language_code: t.language_code
+      }))
+    }
   );
   return response.data;
 };
@@ -67,11 +72,16 @@ export const getQuestionById = async (
  */
 export const updateQuestion = async (
   id: string,
-  questionData: QuestionSerialzer
+  questionData: Partial<QuestionSerialzer>
 ): Promise<QuestionSerialzer> => {
   const response = await apiClient.put<QuestionSerialzer>(
     `/polls/questions/${id}/`,
-    questionData
+    {
+      translations: questionData.translations?.map(t => ({
+        text: t.text,
+        language_code: t.language_code
+      }))
+    }
   );
   return response.data;
 };

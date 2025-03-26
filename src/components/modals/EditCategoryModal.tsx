@@ -1,33 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Upload, Image } from 'lucide-react';
-import { Attachment } from '@/types/api';
+import { Category, CategoryTranslation, Attachment } from '@/types/api';
 import { translations } from '@/lib/constants/translations';
 import MediaPickerModal from '@/components/common/MediaPickerModal';
 import useToast from '@/hooks/useToast';
 
-interface CreateCategoryModalProps {
+interface EditCategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { translations: { name: string; language_code: string }[]; logo: string | null }) => Promise<void>;
+  onSubmit: (id: string, data: Partial<Category>) => Promise<void>;
+  category: Category;
 }
 
-const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClose, onSubmit }) => {
-  const [currentLanguage, setCurrentLanguage] = useState<'fa' | 'en'>('fa');
+const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  category,
+}) => {
   const [formData, setFormData] = useState<{
-    translations: { name: string; language_code: string }[];
+    translations: CategoryTranslation[];
     logo: string | null;
   }>({
-    translations: [
-      { name: '', language_code: 'fa' },
-      { name: '', language_code: 'en' }
-    ],
-    logo: null
+    translations: category.translations,
+    logo: category.logo?.file || null,
   });
 
+  const [currentLanguage, setCurrentLanguage] = useState<'fa' | 'en'>('fa');
   const [showMediaPicker, setShowMediaPicker] = useState(false);
-  const [logoUrl, setLogoUrl] = useState<string>('');
+  const [unsavedChanges, setUnsavedChanges] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const toast = useToast();
+
+  useEffect(() => {
+    if (category) {
+      setFormData({
+        translations: category.translations,
+        logo: category.logo?.file || null,
+      });
+      setUnsavedChanges(false);
+    }
+  }, [category]);
+
+  const getCurrentTranslation = () => {
+    return formData.translations.find(t => t.language_code === currentLanguage);
+  };
+
+  const updateTranslation = (name: string) => {
+    setFormData(prev => ({
+      ...prev,
+      translations: prev.translations.map(t =>
+        t.language_code === currentLanguage ? { ...t, name } : t
+      )
+    }));
+    setUnsavedChanges(true);
+  };
+
+  const handleLogoSelect = (attachments: Attachment[]) => {
+    if (attachments.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        logo: attachments[0].id
+      }));
+      setUnsavedChanges(true);
+    }
+    setShowMediaPicker(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,27 +83,20 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
       toast.error('نام دسته‌بندی به انگلیسی الزامی است');
       return;
     }
-    
+
     try {
       setIsSubmitting(true);
-      await onSubmit(formData);
-      
-      // Only reset form on success
-      setFormData({
-        translations: [
-          { name: '', language_code: 'fa' },
-          { name: '', language_code: 'en' }
-        ],
-        logo: null
+      await onSubmit(category.id, {
+        translations: formData.translations,
+        logo: formData.logo,
+        parent: category.parent // Preserve the parent relationship
       });
-      setLogoUrl('');
-      
+      setUnsavedChanges(false);
+      toast.success('دسته‌بندی با موفقیت ویرایش شد');
     } catch (error: any) {
       // Handle validation errors
       if (error.response?.data?.translations) {
         const errors = error.response.data.translations;
-        
-        // Show specific error messages for each language
         errors.forEach((error: any, index: number) => {
           if (error.name) {
             const lang = index === 0 ? 'فارسی' : 'انگلیسی';
@@ -73,38 +104,11 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
           }
         });
       } else {
-        // Show generic error message
-        toast.error('خطا در ایجاد دسته‌بندی');
+        toast.error('خطا در ویرایش دسته‌بندی');
       }
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const getCurrentTranslation = () => {
-    return formData.translations.find(t => t.language_code === currentLanguage) || formData.translations[0];
-  };
-
-  const updateTranslation = (name: string) => {
-    setFormData({
-      ...formData,
-      translations: formData.translations.map(t => 
-        t.language_code === currentLanguage 
-          ? { ...t, name }
-          : t
-      )
-    });
-  };
-
-  const handleLogoSelect = (attachments: Attachment[]) => {
-    if (attachments.length > 0) {
-      setFormData({
-        ...formData,
-        logo: attachments[0].id
-      });
-      setLogoUrl(attachments[0].file);
-    }
-    setShowMediaPicker(false);
   };
 
   if (!isOpen) return null;
@@ -119,7 +123,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
             <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
               <X size={20} />
             </button>
-            <h3 className="text-lg font-medium text-gray-900">{translations.categories.addCategory}</h3>
+            <h3 className="text-lg font-medium text-gray-900">ویرایش دسته‌بندی</h3>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -129,18 +133,18 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
                 {translations.categories.logo}
               </label>
               <div className="mt-1 flex items-center space-x-4 space-x-reverse">
-                {logoUrl ? (
+                {formData.logo ? (
                   <div className="relative w-16 h-16 rounded-lg overflow-hidden">
                     <img
-                      src={logoUrl}
+                      src={formData.logo}
                       alt=""
                       className="w-full h-full object-cover"
                     />
                     <button
                       type="button"
                       onClick={() => {
-                        setFormData({ ...formData, logo: null });
-                        setLogoUrl('');
+                        setFormData(prev => ({ ...prev, logo: null }));
+                        setUnsavedChanges(true);
                       }}
                       className="absolute top-0 right-0 p-1 bg-red-500 text-white rounded-bl-lg"
                     >
@@ -197,23 +201,21 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
               <input
                 type="text"
                 id={`name-${currentLanguage}`}
-                value={getCurrentTranslation().name}
+                value={getCurrentTranslation()?.name || ''}
                 onChange={(e) => updateTranslation(e.target.value)}
-                className={`block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${
-                  'border-red-300'
-                }`}
-                required
+                className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 placeholder={currentLanguage === 'fa' ? 'نام دسته‌بندی به فارسی (الزامی)' : 'Category name in English (Required)'}
+                required
               />
             </div>
 
             <div className="mt-6 space-x-3 space-x-reverse text-left">
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={!unsavedChanges || isSubmitting}
                 className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'در حال ثبت...' : translations.categories.addCategory}
+                {isSubmitting ? 'در حال ذخیره...' : translations.common.save}
               </button>
               <button
                 type="button"
@@ -239,4 +241,4 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
   );
 };
 
-export default CreateCategoryModal;
+export default EditCategoryModal;

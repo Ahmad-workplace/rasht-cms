@@ -4,14 +4,19 @@ export interface TaskTranslation {
   language_code: string;
 }
 
+export interface MediaUrl {
+  file: string | null;
+  file_url: string | null;
+}
+
 export interface Task {
   id: string;
   content: string;
   day: string;
   time: string;
   duration: number;
-  mediaType?: 'png' | 'jpeg' | 'mp4';
-  mediaUrl?: string;
+  mediaType?: 'png' | 'jpeg' | 'mp4' | 'jpg' | 'webp';
+  mediaUrl?: MediaUrl;
   thumbnail?: string | null;
   translations?: TaskTranslation[];
 }

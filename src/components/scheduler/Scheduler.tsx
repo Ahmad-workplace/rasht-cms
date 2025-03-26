@@ -217,7 +217,7 @@ const Scheduler: React.FC<SchedulerProps> = ({
         <div className="flex gap-8">
           {/* Task List */}
           <div className="w-64 bg-white rounded-lg p-4 self-start sticky top-8">
-            <h2 className="text-lg font-semibold mb-4">برنامه‌های زمان‌بندی نشده</h2>
+            <h2 className="text-lg font-semibold mb-4">رسانه‌های موجود</h2>
             <Droppable droppableId="task-list">
               {(provided, snapshot) => (
                 <div

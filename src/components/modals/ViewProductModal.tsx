@@ -1,6 +1,8 @@
 import React from 'react';
-import { X, Package, Calendar, Tag, Building2 } from 'lucide-react';
+import { X, Package, Calendar, Tag, Building2, Info, Globe } from 'lucide-react';
 import { Product } from '@/types/api';
+import { translations } from '@/lib/constants/translations';
+import { BASE_URL } from '@/lib/api/client';
 
 interface ViewProductModalProps {
   isOpen: boolean;
@@ -19,152 +21,145 @@ const ViewProductModal: React.FC<ViewProductModalProps> = ({ isOpen, onClose, pr
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={onClose} />
 
-        <div className="inline-block w-full max-w-3xl px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">Product Details</h3>
+        <div className="inline-block w-full max-w-4xl px-4 pt-5 pb-4 overflow-hidden text-right align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:p-6">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
             <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
-              <X size={20} />
+              <X size={24} />
             </button>
+            <h3 className="text-xl font-semibold text-gray-900">جزئیات محصول</h3>
           </div>
 
-          <div className="mt-4">
-            {/* Product Header */}
-            <div className="flex items-start">
-              <div className="flex-shrink-0 h-24 w-24 bg-gray-100 rounded-lg flex items-center justify-center">
-                {product.attachment && product.attachment.length > 0 ? (
-                  <img 
-                    src={`/_/upload/${product.attachment[0]}/`}
-                    alt={faTranslation?.name || ''}
-                    className="h-24 w-24 rounded-lg object-cover"
-                  />
-                ) : (
-                  <Package size={32} className="text-gray-400" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Main Info Section */}
+            <div className="space-y-6">
+              {/* Product Header */}
+              <div className="flex items-start space-x-4 space-x-reverse">
+                <div className="flex-shrink-0 h-16 w-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                  {product.attachment && product.attachment.length > 0 ? (
+                    <img 
+                      src={product.attachment[0].file}
+                      alt={faTranslation?.name || ''}
+                      className="h-16 w-16 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <Package size={32} className="text-gray-400" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-1">
+                    {faTranslation?.name}
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    {enTranslation?.name}
+                  </p>
+                </div>
+              </div>
+
+              {/* Product Details */}
+              <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                <div className="flex items-center text-sm">
+                  <Tag className="h-5 w-5 text-gray-400 ml-2" />
+                  <span className="font-medium text-gray-700 ml-2">شناسه:</span>
+                  <span className="text-gray-600">{product.id}</span>
+                </div>
+
+                {product.category && (
+                  <div className="flex items-center text-sm">
+                    <Building2 className="h-5 w-5 text-gray-400 ml-2" />
+                    <span className="font-medium text-gray-700 ml-2">دسته‌بندی:</span>
+                    <span className="text-gray-600">{product.category}</span>
+                  </div>
+                )}
+
+                {product.warranty && (
+                  <div className="flex items-center text-sm">
+                    <Calendar className="h-5 w-5 text-gray-400 ml-2" />
+                    <span className="font-medium text-gray-700 ml-2">گارانتی:</span>
+                    <span className="text-gray-600">{product.warranty} ماه</span>
+                  </div>
                 )}
               </div>
-              <div className="ml-6 flex-1">
-                <h2 className="text-2xl font-bold text-gray-900">{faTranslation?.name}</h2>
-                <p className="text-sm text-gray-500">{enTranslation?.name}</p>
-                <div className="mt-1 flex items-center space-x-2">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    product.is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
-                    {product.is_available ? 'Available' : 'Unavailable'}
-                  </span>
-                  {product.is_active && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      Active
-                    </span>
+
+              {/* Translations */}
+              <div className="space-y-4">
+                <h4 className="text-lg font-medium text-gray-900">توضیحات</h4>
+                <div className="space-y-4">
+                  {/* Persian Description */}
+                  {faTranslation?.description && (
+                    <div className="bg-white border rounded-lg p-4">
+                      <div className="flex items-center mb-2">
+                        <Globe className="h-4 w-4 text-gray-400 ml-2" />
+                        <span className="text-sm font-medium text-gray-700">فارسی</span>
+                      </div>
+                      <p className="text-gray-600 text-sm whitespace-pre-line">
+                        {faTranslation.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* English Description */}
+                  {enTranslation?.description && (
+                    <div className="bg-white border rounded-lg p-4">
+                      <div className="flex items-center mb-2">
+                        <Globe className="h-4 w-4 text-gray-400 ml-2" />
+                        <span className="text-sm font-medium text-gray-700">English</span>
+                      </div>
+                      <p className="text-gray-600 text-sm whitespace-pre-line">
+                        {enTranslation.description}
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Product Details Grid */}
-            <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <div className="border rounded-lg p-4">
-                <div className="flex items-center text-sm font-medium text-gray-500">
-                  <Building2 size={16} className="mr-2" />
-                  Company
-                </div>
-                <div className="mt-1 text-sm text-gray-900">{product.company}</div>
-              </div>
-
-              <div className="border rounded-lg p-4">
-                <div className="flex items-center text-sm font-medium text-gray-500">
-                  <Tag size={16} className="mr-2" />
-                  Category
-                </div>
-                <div className="mt-1 text-sm text-gray-900">{product.category}</div>
-              </div>
-
-              {product.warranty && (
-                <div className="border rounded-lg p-4">
-                  <div className="flex items-center text-sm font-medium text-gray-500">
-                    <Calendar size={16} className="mr-2" />
-                    Warranty
+            {/* Specifications and Images */}
+            <div className="space-y-6">
+              {/* Specifications */}
+              {(faTranslation?.specification || enTranslation?.specification) && (
+                <div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">مشخصات فنی</h4>
+                  <div className="bg-white border rounded-lg divide-y">
+                    {Object.entries(faTranslation?.specification || {}).map(([key, value]) => (
+                      <div key={key} className="flex items-center justify-between p-3">
+                        <span className="text-sm font-medium text-gray-500">{key}</span>
+                        <span className="text-sm text-gray-900">{value}</span>
+                      </div>
+                    ))}
                   </div>
-                  <div className="mt-1 text-sm text-gray-900">{product.warranty} months</div>
+                </div>
+              )}
+
+              {/* Images Gallery */}
+              {product.attachment && product.attachment.length > 0 && (
+                <div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">تصاویر</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    {product.attachment.map((attachment) => (
+                      <div key={attachment.id} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+                        <img
+                          src={attachment.file}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Translations */}
-            <div className="mt-6">
-              <h4 className="text-sm font-medium text-gray-900 mb-4">Translations</h4>
-              <div className="space-y-4">
-                {product.translations.map((translation) => (
-                  <div key={translation.language_code} className="border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-900">
-                        {translation.language_code === 'fa' ? 'Persian' : 'English'}
-                      </span>
-                    </div>
-                    <dl className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
-                      <div className="sm:col-span-1">
-                        <dt className="text-sm font-medium text-gray-500">Name</dt>
-                        <dd className="mt-1 text-sm text-gray-900">{translation.name}</dd>
-                      </div>
-                      <div className="sm:col-span-1">
-                        <dt className="text-sm font-medium text-gray-500">Unit</dt>
-                        <dd className="mt-1 text-sm text-gray-900">{translation.unit}</dd>
-                      </div>
-                      <div className="sm:col-span-1">
-                        <dt className="text-sm font-medium text-gray-500">Price</dt>
-                        <dd className="mt-1 text-sm text-gray-900">{translation.price}</dd>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <dt className="text-sm font-medium text-gray-500">Description</dt>
-                        <dd className="mt-1 text-sm text-gray-900">{translation.description}</dd>
-                      </div>
-                      {Object.entries(translation.specification || {}).length > 0 && (
-                        <div className="sm:col-span-2">
-                          <dt className="text-sm font-medium text-gray-500 mb-2">Specifications</dt>
-                          <dd className="mt-1">
-                            <ul className="divide-y divide-gray-200 border rounded-lg">
-                              {Object.entries(translation.specification || {}).map(([key, value]) => (
-                                <li key={`${translation.language_code}-${key}`} className="px-4 py-3 flex items-center justify-between text-sm">
-                                  <span className="font-medium text-gray-600">{key}</span>
-                                  <span className="text-gray-900">{value}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </dd>
-                        </div>
-                      )}
-                    </dl>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Images Gallery */}
-            {product.attachment && product.attachment.length > 0 && (
-              <div className="mt-6">
-                <h4 className="text-sm font-medium text-gray-900 mb-3">Images</h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {product.attachment.map((attachmentId) => (
-                    <div key={attachmentId} className="relative aspect-w-3 aspect-h-2">
-                      <img
-                        src={`/_/upload/${attachmentId}/`}
-                        alt=""
-                        className="object-cover rounded-lg shadow-sm"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Footer */}
-            <div className="mt-8 flex justify-end">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                Close
-              </button>
-            </div>
+          {/* Footer */}
+          <div className="mt-8 flex justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              بستن
+            </button>
           </div>
         </div>
       </div>

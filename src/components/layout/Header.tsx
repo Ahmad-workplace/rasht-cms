@@ -5,7 +5,7 @@ import { translations } from '@/lib/constants/translations';
 import { useLayoutStore } from '@/stores/layoutStore';
 
 const Header: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const { toggleSidebar } = useLayoutStore();
   
   return (
@@ -31,7 +31,7 @@ const Header: React.FC = () => {
               <div className="flex items-center space-x-3 space-x-reverse">
                 <div className="flex flex-col items-start">
                   <span className="text-sm font-medium text-gray-700">
-                    {user?.first_name} {user?.last_name}
+                    admin
                   </span>
                   <button 
                     onClick={() => logout()}

@@ -34,6 +34,14 @@ export const uploadAttachment = async (file: File): Promise<Attachment> => {
 };
 
 /**
+ * Update attachment
+ */
+export const updateAttachment = async (id: string, data: Partial<Attachment>): Promise<Attachment> => {
+  const response = await apiClient.put<Attachment>(`/_/upload/${id}/`, data);
+  return response.data;
+};
+
+/**
  * Delete attachment
  */
 export const deleteAttachment = async (id: string): Promise<void> => {

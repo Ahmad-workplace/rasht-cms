@@ -1,8 +1,8 @@
-import React, { useState, useRef, KeyboardEvent } from "react";
-import { X, Plus, Upload, Image } from "lucide-react";
-import { Category, CreateProduct, Translation, Attachment } from "@/types/api";
-import { translations } from "@/lib/constants/translations";
-import MediaPickerModal from "@/components/common/MediaPickerModal";
+import React, { useState, useRef, KeyboardEvent } from 'react';
+import { X, Plus, Upload, Image } from 'lucide-react';
+import { Category, CreateProduct, Translation, Attachment } from '@/types/api';
+import { translations } from '@/lib/constants/translations';
+import MediaPickerModal from '@/components/common/MediaPickerModal';
 
 interface CreateProductModalProps {
   isOpen: boolean;
@@ -14,8 +14,6 @@ interface CreateProductModalProps {
 interface ProductTranslation {
   name: string;
   description: string;
-  unit: string;
-  price: string;
   specification: Record<string, string>;
   language_code: string;
 }
@@ -160,10 +158,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     onSubmit(formData);
     setFormData({
       category: "",
-      is_available: true,
-      is_active: true,
-      is_visible_price: true,
-      warranty: "",
       translations: [
         {
           name: "",
@@ -322,12 +316,8 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
             {/* Translation Fields */}
             <div className="space-y-4">
               <div>
-                <label
-                  htmlFor={`name-${currentLanguage}`}
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  {translations.products.productName}{" "}
-                  {currentLanguage === "fa" && "*"}
+                <label htmlFor={`name-${currentLanguage}`} className="block text-sm font-medium text-gray-700">
+                  {translations.products.productName} {currentLanguage === "fa" && "*"}
                 </label>
                 <input
                   type="text"
@@ -340,12 +330,8 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
               </div>
 
               <div>
-                <label
-                  htmlFor={`description-${currentLanguage}`}
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  {translations.companies.description}{" "}
-                  {currentLanguage === "fa" && "*"}
+                <label htmlFor={`description-${currentLanguage}`} className="block text-sm font-medium text-gray-700">
+                  {translations.companies.description} {currentLanguage === "fa" && "*"}
                 </label>
                 <textarea
                   id={`description-${currentLanguage}`}

@@ -17,6 +17,9 @@ export function useApiQuery<TData, TError = AxiosError>(
     queryFn,
     {
       refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 30000, // Consider data fresh for 30 seconds by default
+      cacheTime: 60000, // Keep data in cache for 1 minute by default
       onError: (error: any) => {
         // Show error toast
         toast.error(error?.response?.data?.message || 'خطا در دریافت اطلاعات');

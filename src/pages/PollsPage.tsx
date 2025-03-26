@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { useApiQuery, useApiMutation } from '@/hooks';
-import { Search, Plus, Trash2, Edit } from 'lucide-react';
+import { Search, Plus, Trash2, Edit2 } from 'lucide-react';
 import CreatePollModal from '@/components/modals/CreatePollModal';
 import ViewPollModal from '@/components/modals/ViewPollModal';
 import EditPollModal from '@/components/modals/EditPollModal';
@@ -23,7 +23,7 @@ const PollsPage: React.FC = () => {
   // Fetch questions with pagination
   const { data: pollsData, isLoading: pollsLoading, error: pollsError, refetch } = useApiQuery(
     ['polls', page.toString()],
-    () => getQuestions(), // Adjust this if your API supports pagination
+    () => getQuestions(),
     {
       keepPreviousData: true,
     }
@@ -199,9 +199,6 @@ const PollsPage: React.FC = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {translations.polls.id}
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {translations.polls.question}
                     </th>
                     <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -213,9 +210,6 @@ const PollsPage: React.FC = () => {
                   {filteredPolls && filteredPolls.length > 0 ? (
                     filteredPolls.map((poll) => (
                       <tr key={poll.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {poll.id}
-                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {poll.translations[0].text}
                         </td>
@@ -231,7 +225,7 @@ const PollsPage: React.FC = () => {
                               onClick={() => setSelectedPollForEdit(poll)}
                               className="text-yellow-600 hover:text-yellow-900"
                             >
-                              <Edit size={16} />
+                              <Edit2 size={16} />
                             </button>
                             <button
                               onClick={() => handleDeletePoll(poll.id)}
@@ -245,7 +239,7 @@ const PollsPage: React.FC = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={3} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                      <td colSpan={2} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                         {translations.common.noResults}
                       </td>
                     </tr>
@@ -282,7 +276,6 @@ const PollsPage: React.FC = () => {
                             </div>
                           )}
                         />
-                        {/* <Legend /> */}
                         <Bar dataKey="value" fill="#8884d8" />
                       </BarChart>
                     </ResponsiveContainer>

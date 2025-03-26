@@ -25,6 +25,17 @@ const Task: React.FC<TaskProps> = ({ task, index, columnSpan, onResize, onDelete
   const colorIndex = parseInt(task.id.split('-')[1]) % TASK_COLORS.length || 0;
   const baseColor = TASK_COLORS[colorIndex];
 
+  // Helper function to get the file URL
+  const getFileUrl = () => {
+    if (task.mediaUrl) {
+      if (task.mediaUrl.file) return task.mediaUrl.file;
+      if (task.mediaUrl.file_url) return task.mediaUrl.file_url;
+    }
+    return null;
+  };
+
+  const fileUrl = getFileUrl();
+
   return (
     <Draggable draggableId={task.id} index={index}>
       {(provided, snapshot) => (
@@ -65,12 +76,20 @@ const Task: React.FC<TaskProps> = ({ task, index, columnSpan, onResize, onDelete
                   )}
                 </div>
               )}
-              {task.thumbnail && (
-                <img 
-                  src={task.thumbnail} 
-                  alt="" 
-                  className="w-6 h-6 object-cover rounded ml-2"
-                />
+              {fileUrl && (
+                <div className="w-6 h-6 rounded overflow-hidden ml-2 bg-gray-100">
+                  {task.mediaType === 'mp4' ? (
+                    <div className="w-full h-full flex items-center justify-center bg-black">
+                      <Play className="w-4 h-4 text-white" />
+                    </div>
+                  ) : (
+                    <img 
+                      src={fileUrl}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
               )}
               <div className="flex-1 min-w-0">
                 <div className="text-xs font-medium truncate">{task.content}</div>
