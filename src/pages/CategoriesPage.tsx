@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { useApiQuery, useApiMutation } from '@/hooks';
 import { getCategories, createCategory, deleteCategory, updateCategory } from '@/lib/api';
-import { Package, Search, Plus, LayoutGrid, List, Edit2 } from 'lucide-react';
+import { Package, Search, Plus, LayoutGrid, List, ChevronDown, ChevronRight } from 'lucide-react';
 import { Category } from '@/types/api';
 import { translations } from '@/lib/constants/translations';
 import CreateCategoryModal from '@/components/modals/CreateCategoryModal';
@@ -11,22 +11,54 @@ import useToast from '@/hooks/useToast';
 import { convertToFarsiNumber } from '@/lib/utils/numbers';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
-
 type ViewMode = 'card' | 'list';
 
+interface CategoryNode extends Category {
+  children: CategoryNode[];
+}
+
 const CategoriesPage: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const toast = useToast();
-  
+
   const { data: categories, isLoading, error, refetch } = useApiQuery(
     'categories',
     getCategories
   );
+
+  // Transform flat categories into a hierarchical structure
+  const categoryHierarchy = useMemo(() => {
+    if (!categories) return [];
+
+    const categoryMap = new Map<string, CategoryNode>();
+    const rootCategories: CategoryNode[] = [];
+
+    // First pass: Create CategoryNode objects for each category
+    categories.forEach(category => {
+      categoryMap.set(category.id, { ...category, children: [] });
+    });
+
+    // Second pass: Build the hierarchy
+    categories.forEach(category => {
+      const node = categoryMap.get(category.id)!;
+      if (category.parent) {
+        const parentNode = categoryMap.get(category.parent);
+        if (parentNode) {
+          parentNode.children.push(node);
+        }
+      } else {
+        rootCategories.push(node);
+      }
+    });
+
+    return rootCategories;
+  }, [categories]);
 
   const createCategoryMutation = useApiMutation(createCategory, {
     onSuccess: () => {
@@ -53,7 +85,7 @@ const CategoriesPage: React.FC = () => {
       toast.success(translations.categories.deleteSuccess);
     },
   });
-  
+
   const handleCreateCategory = async (categoryData: Omit<Category, 'id'>) => {
     try {
       await createCategoryMutation.mutateAsync(categoryData);
@@ -88,164 +120,111 @@ const CategoriesPage: React.FC = () => {
     setPageSize(newPageSize);
     setPage(1);
   };
-  
+
+  const toggleCategoryExpansion = (categoryId: string) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
+      } else {
+        next.add(categoryId);
+      }
+      return next;
+    });
+  };
+
   // Filter categories by search term
-  const filteredCategories = categories?.filter(category => {
+  const filterCategory = (category: CategoryNode): boolean => {
     const faTranslation = category.translations.find(t => t.language_code === 'fa');
     const enTranslation = category.translations.find(t => t.language_code === 'en');
     
-    return faTranslation?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           enTranslation?.name.toLowerCase().includes(searchTerm.toLowerCase());
-  });
+    const matchesSearch = !searchTerm || 
+      faTranslation?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      enTranslation?.name.toLowerCase().includes(searchTerm.toLowerCase());
 
-  // Paginate categories
-  const paginatedCategories = filteredCategories?.slice(
-    (page - 1) * pageSize,
-    page * pageSize
-  );
+    return matchesSearch || category.children.some(filterCategory);
+  };
 
-  const totalPages = Math.ceil((filteredCategories?.length || 0) / pageSize);
+  const filteredCategories = useMemo(() => {
+    if (!categoryHierarchy) return [];
+    return categoryHierarchy.filter(filterCategory);
+  }, [categoryHierarchy, searchTerm]);
 
-  const renderCardView = () => (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {paginatedCategories && paginatedCategories.length > 0 ? (
-        paginatedCategories.map((category) => {
-          const faTranslation = category.translations.find(t => t.language_code === 'fa');
-          const enTranslation = category.translations.find(t => t.language_code === 'en');
+  const renderCategoryNode = (category: CategoryNode, depth = 0) => {
+    const faTranslation = category.translations.find(t => t.language_code === 'fa');
+    const enTranslation = category.translations.find(t => t.language_code === 'en');
+    const hasChildren = category.children.length > 0;
+    const isExpanded = expandedCategories.has(category.id);
+
+    return (
+      <div key={category.id} style={{ marginRight: `${depth * 1.5}rem` }}>
+        <div className={`flex items-center p-4 hover:bg-gray-50 ${depth > 0 ? 'border-t' : ''}`}>
+          <div className="flex-shrink-0 h-10 w-10 mr-4">
+            {category.logo?.file ? (
+              <img 
+                src={category.logo.file}
+                alt={faTranslation?.name || ''}
+                className="h-10 w-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                <Package size={20} className="text-gray-500" />
+              </div>
+            )}
+          </div>
           
-          return (
-            <div key={category.id} className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-4">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center ml-4">
-                    {category.logo ? (
-                      <img 
-                        src={category.logo} 
-                        alt={faTranslation?.name || enTranslation?.name} 
-                        className="h-10 w-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <Package size={20} className="text-gray-500" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      {faTranslation?.name || enTranslation?.name}
-                    </h3>
-                    {faTranslation && enTranslation && faTranslation.name !== enTranslation.name && (
-                      <p className="text-sm text-gray-500">{enTranslation.name}</p>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="mt-4 flex justify-end space-x-2 space-x-reverse">
-                  <button
-                    onClick={() => handleEditCategory(category)}
-                    className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    <Edit2 className="w-4 h-4 ml-1" />
-                    {translations.common.edit}
-                  </button>
-                  <button
-                    onClick={() => handleDeleteCategory(category.id)}
-                    className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                  >
-                    {translations.common.delete}
-                  </button>
-                </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center">
+              {hasChildren && (
+                <button
+                  onClick={() => toggleCategoryExpansion(category.id)}
+                  className="p-1 hover:bg-gray-100 rounded-full mr-2"
+                >
+                  {isExpanded ? (
+                    <ChevronDown size={16} className="text-gray-500" />
+                  ) : (
+                    <ChevronRight size={16} className="text-gray-500" />
+                  )}
+                </button>
+              )}
+              <div>
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {faTranslation?.name || enTranslation?.name}
+                </p>
+                {enTranslation && faTranslation && enTranslation.name !== faTranslation.name && (
+                  <p className="text-sm text-gray-500 truncate">
+                    {enTranslation.name}
+                  </p>
+                )}
               </div>
             </div>
-          );
-        })
-      ) : (
-        <div className="col-span-full text-center py-10 text-gray-500">
-          {translations.common.noResults}
-        </div>
-      )}
-    </div>
-  );
+          </div>
 
-  const renderListView = () => (
-    <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              نام دسته‌بندی
-            </th>
-            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              نام انگلیسی
-            </th>
-            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              عملیات
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {paginatedCategories && paginatedCategories.length > 0 ? (
-            paginatedCategories.map((category) => {
-              const faTranslation = category.translations.find(t => t.language_code === 'fa');
-              const enTranslation = category.translations.find(t => t.language_code === 'en');
-              
-              return (
-                <tr key={category.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        {category.logo ? (
-                          <img 
-                            src={category.logo}
-                            alt={faTranslation?.name}
-                            className="h-10 w-10 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                            <Package size={20} className="text-gray-500" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="mr-4">
-                        <div className="text-sm font-medium text-gray-900">
-                          {faTranslation?.name}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {enTranslation?.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center space-x-2 space-x-reverse">
-                      <button
-                        onClick={() => handleEditCategory(category)}
-                        className="inline-flex items-center text-indigo-600 hover:text-indigo-900"
-                      >
-                        <Edit2 className="w-4 h-4 ml-1" />
-                        {translations.common.edit}
-                      </button>
-                      <button
-                        onClick={() => handleDeleteCategory(category.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        {translations.common.delete}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })
-          ) : (
-            <tr>
-              <td colSpan={3} className="px-6 py-4 text-center text-gray-500">
-                {translations.common.noResults}
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
-  );
-  
+          <div className="flex items-center space-x-2 space-x-reverse">
+            <button
+              onClick={() => handleEditCategory(category)}
+              className="text-indigo-600 hover:text-indigo-900"
+            >
+              {translations.common.edit}
+            </button>
+            <button
+              onClick={() => handleDeleteCategory(category.id)}
+              className="text-red-600 hover:text-red-900"
+            >
+              {translations.common.delete}
+            </button>
+          </div>
+        </div>
+
+        {hasChildren && isExpanded && (
+          <div className="border-r border-gray-200 mr-5">
+            {category.children.map(child => renderCategoryNode(child, depth + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <MainLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -274,45 +253,6 @@ const CategoriesPage: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-
-          <div className="sm:w-48">
-            <select
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              value={pageSize}
-              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-            >
-              {PAGE_SIZE_OPTIONS.map(size => (
-                <option key={size} value={size}>
-                  {convertToFarsiNumber(size)} مورد در صفحه
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setViewMode('card')}
-              className={`p-2 rounded-md ${
-                viewMode === 'card'
-                  ? 'bg-indigo-100 text-indigo-600'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-              title="نمایش کارتی"
-            >
-              <LayoutGrid size={20} />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-2 rounded-md ${
-                viewMode === 'list'
-                  ? 'bg-indigo-100 text-indigo-600'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-              title="نمایش لیستی"
-            >
-              <List size={20} />
-            </button>
-          </div>
         </div>
         
         {isLoading ? (
@@ -324,40 +264,17 @@ const CategoriesPage: React.FC = () => {
             <p className="text-red-500">{translations.common.error}</p>
           </div>
         ) : (
-          <>
-            <div className="mt-6">
-              {viewMode === 'card' ? renderCardView() : renderListView()}
-            </div>
-            
-            {filteredCategories && filteredCategories.length > 0 && (
-              <div className="mt-4 flex items-center justify-between">
-                <div className="text-sm text-gray-700">
-                  نمایش <span className="font-medium">{convertToFarsiNumber((page - 1) * pageSize + 1)}</span> تا{' '}
-                  <span className="font-medium">
-                    {convertToFarsiNumber(Math.min(page * pageSize, filteredCategories.length))}
-                  </span>{' '}
-                  از <span className="font-medium">{convertToFarsiNumber(filteredCategories.length)}</span> نتیجه
-                </div>
-                
-                <div className="flex-1 flex justify-end">
-                  <button
-                    onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                    disabled={page === 1}
-                    className="mr-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-r-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    قبلی
-                  </button>
-                  <button
-                    onClick={() => setPage((p) => p + 1)}
-                    disabled={page >= totalPages}
-                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-l-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    بعدی
-                  </button>
-                </div>
+          <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
+            {filteredCategories.length > 0 ? (
+              <div className="divide-y divide-gray-200">
+                {filteredCategories.map(category => renderCategoryNode(category))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                {translations.common.noResults}
               </div>
             )}
-          </>
+          </div>
         )}
 
         <CreateCategoryModal
